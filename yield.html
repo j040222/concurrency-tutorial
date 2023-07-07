@@ -1,0 +1,124 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::yield</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>yield</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         The <function_name>yield</function_name> function
+         is a hint to the implementation that other
+         <typename>threads</typename> should be scheduled
+         for execution, other than the
+         <typename>thread</typename> which called
+         <function_name>yield</function_name>.
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;chrono&gt;
+
+#include &lt;thread&gt;
+
+void worker
+   (
+   ::std::chrono::microseconds
+      interval
+   )
+{
+   auto const
+      end_time =
+         (
+            interval
+            +
+            ::std::chrono::
+               high_resolution_clock::now()
+         )
+         ;
+   
+   ::std::size_t
+      number_of_loops = 0u;
+   
+   while
+      (
+         ::std::chrono::high_resolution_clock::now()
+         &lt;
+         end_time
+      )
+   {
+      ::std::this_thread::yield();
+      
+      ++number_of_loops;
+   }
+   
+   ::std::cout &lt;&lt; "Number of loops: "
+               &lt;&lt; number_of_loops
+               &lt;&lt; ::std::endl
+                  ;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::jthread
+      thread( worker, ::std::chrono::microseconds(10u) );
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         Possible outputs:
+         </p>
+         
+         <p>
+         Without <function_name>yield():</function_name>
+         </p>
+         
+         <div class="program_output">Number of loops: 74</div>
+         
+         <p>
+         With <function_name>yield():</function_name>
+         </p>
+         
+         <div class="program_output">Number of loops: 8</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

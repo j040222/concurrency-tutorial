@@ -1,0 +1,161 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::barrier</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>barrier</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         
+         <typename>Barriers</typename> block a group of
+         <typename>threads</typename> of known size until
+         every <typename>thread</typename> in the group has
+         reached the <typename>barrier</typename>.
+         
+         <br/><br/>
+         
+         The <typename>barrier</typename> contains a counter
+         which decrements by one whenever
+         <typename>barrier</typename>.
+         <function_name>arrive_and_wait</function_name> or
+         <typename>barrier</typename>.
+         <function_name>arrive</function_name> is called. 
+         Once the counter reaches zero: (a) all of the 
+         <typename>threads</typename> that are waiting at
+         the <typename>barrier</typename> proceed and (b)
+         the counter resets to its original value.
+         
+         <br/><br/>
+         
+         <typename>Barriers</typename> are multi-use
+         <typename>latches</typename>.
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;syncstream&gt;
+
+#include &lt;thread&gt;
+#include &lt;vector&gt;
+#include &lt;barrier&gt;
+
+void when_done(void) noexcept
+{
+   ::std::cout &lt;&lt; "Done"
+               &lt;&lt; ::std::endl
+                  ;
+}
+
+unsigned const
+   number_of_threads = 5u;
+
+::std::barrier
+   barrier(number_of_threads, when_done);
+
+void do_work(void)
+{
+   ::std::osyncstream(::std::cout) &lt;&lt; "Before Barrier"
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   barrier.arrive_and_wait();
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Stage 1"
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   //
+   // Reuse the barrier:
+   //
+   
+   barrier.arrive_and_wait();
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "After Barrier"
+                                   &lt;&lt; ::std::endl
+                                      ;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::vector
+      &lt;
+      ::std::jthread
+      &gt;
+      threads;
+   
+   for(unsigned i(0u); i&lt; number_of_threads; ++i)
+   {
+      threads.emplace_back( do_work );
+      
+      continue;
+   }
+   
+   //
+   // 10 threads have completed 'do_work'
+   //
+   
+   return 0;
+}</code></pre>
+         
+         Possible output:
+         
+         <div class="program_output">Before Barrier
+Before Barrier
+Before Barrier
+Before Barrier
+Before Barrier
+Done
+Stage 1
+Stage 1
+Stage 1
+Stage 1
+Stage 1
+Done
+After Barrier
+After Barrier
+After Barrier
+After Barrier
+After Barrier</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

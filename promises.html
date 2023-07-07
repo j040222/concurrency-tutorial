@@ -1,0 +1,171 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::promise</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>promise</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         
+         Asynchronous tasks can store values in
+         <typename>promises</typename>.
+         The value (or the exception) stored in the
+         <typename>promise</typename> is acquired by a
+         <typename>future</typename>, which provides access
+         to the stored value.
+         
+         </p>
+         <p>
+         
+         <typename>Promises</typename> are generally passed
+         to <typename>threads</typename>, at which point the
+         <typename>thread</typename> assigns a value to the
+         <typename>promise</typename>. The calling
+         <typename>thread</typename>, having created a
+         <typename>future</typename> from the
+         <typename>promise</typename>, can then access the
+         assigned value.
+
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+
+#include &lt;future&gt;
+#include &lt;thread&gt;
+
+void find_largest
+   (
+   ::std::vector &lt;int&gt; const &
+      values
+         ,
+   ::std::promise &lt;int&gt;
+      maximum
+   )
+{
+   maximum.set_value
+      (
+      *::std::max_element
+         (
+         values.begin()
+            ,
+         values.end()
+         )
+      )
+      ;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::vector &lt;int&gt; const
+      values = { 1, 2, 3, 4, 5 };
+   
+   ::std::promise &lt;int&gt;
+      maximum;
+   
+   ::std::future &lt;int&gt;
+      future = maximum.get_future();
+   
+   ::std::jthread
+      worker
+         (
+         find_largest,
+         ::std::ref(values),
+         ::std::move(maximum)
+         )
+         ;
+   
+   ::std::cout &lt;&lt; "Maximum Value: "
+               &lt;&lt; future.get()
+               &lt;&lt; ::std::endl
+                  ;
+   
+   return 0;
+}</code></pre>
+         
+         <typename>Promises</typename> can also be used as
+         signals. Use <typename>promise&lt;void&gt;
+         </typename> and 'assign a value' using
+         <typename>promise</typename>.
+         <function_name>set_value()</function_name>:
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+
+#include &lt;future&gt;
+#include &lt;thread&gt;
+
+void do_work
+   (
+   ::std::promise &lt;void&gt;
+      signal
+   )
+{
+   signal.set_value();
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::promise &lt;void&gt;
+      signal;
+   
+   auto
+      future = signal.get_future();
+   
+   ::std::jthread
+      worker
+         (
+         do_work,
+         ::std::move(signal)
+         )
+         ;
+   
+   future.wait();
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

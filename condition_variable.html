@@ -1,0 +1,293 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::condition_variable</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>condition_variable</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         Condition variables are used to block
+         <typename>threads</typename> until a custom
+         condition has been satisfied. The condition is
+         specified using a callable object, eg. a
+         lambda function.
+         
+         <br/><br/>
+         
+         The <typename>condition_variable</typename> can be
+         used to unblock ("notify") one waiting thread
+         (<typename>condition_variable</typename>.
+         <function_name>notify_one</function_name>) or all
+         waiting threads
+         (<typename>condition_variable</typename>.
+         <function_name>notify_all</function_name>)
+         simultaneously.
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;syncstream&gt;
+
+#include &lt;mutex&gt;
+#include &lt;thread&gt;
+#include &lt;condition_variable&gt;
+
+::std::mutex
+   mutex0,
+   mutex1;
+
+::std::condition_variable
+   condition,
+   worker_is_done;
+
+bool
+   is_ready = false,
+   is_finished = false;
+
+::std::string
+   content = "Initial Content";
+
+void function(unsigned thread_index)
+{
+   ::std::unique_lock
+      lock
+         (
+         mutex0
+         )
+         ;
+   
+   condition.wait
+      (
+      lock,
+      []
+         {
+            return
+               is_ready;
+         }
+      )
+      ;
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Worker thread "
+                                   &lt;&lt; thread_index
+                                   &lt;&lt; " is active"
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   //
+   // Use another condition variable to notify the parent
+   // thread that this thread is done:
+   //
+   
+   {
+   
+   ::std::lock_guard
+      lock
+         (
+         mutex1
+         )
+         ;
+   
+   is_finished = true;
+   
+   worker_is_done.notify_one();
+   
+   }
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::jthread worker0( function, 0u );
+   ::std::jthread worker1( function, 1u );
+   ::std::jthread worker2( function, 2u );
+   ::std::jthread worker3( function, 3u );
+   
+   {
+   
+   ::std::lock_guard
+      lock
+         (
+         mutex0
+         )
+         ;
+   
+   is_ready = true;
+   
+   }
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Notify one thread..."
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   condition.notify_one();
+   
+   //
+   // Wait to be notified that the child thread is done:
+   //
+   
+   {
+   
+   ::std::unique_lock
+      lock
+         (
+         mutex1
+         )
+         ;
+   
+   worker_is_done.wait
+      (
+      lock,
+      []
+         {
+            return
+               is_finished;
+         }
+      )
+      ;
+   
+   is_finished = false;
+   
+   }
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Notify one thread..."
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   condition.notify_one();
+   
+   //
+   // Wait to be notified that the child thread is done:
+   //
+   
+   {
+   
+   ::std::unique_lock
+      lock
+         (
+         mutex1
+         )
+         ;
+   
+   worker_is_done.wait
+      (
+      lock,
+      []
+         {
+            return
+               is_finished;
+         }
+      )
+      ;
+   
+   is_finished = false;
+   
+   }
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Notify all "
+                                      "remaining threads..."
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   //
+   // Unblock all remaining threads:
+   //
+   
+   condition.notify_all();
+   
+   return 0;
+}</code></pre>
+         
+         Possible output:
+         
+         <div class="program_output">Notify one thread...
+Worker thread 2 is active
+Notify one thread...
+Worker thread 3 is active
+Notify all remaining threads...
+Worker thread 1 is active
+Worker thread 0 is active</div>
+         
+         <h1>condition_variable_any</h1>
+         
+         <p>
+         The standard library contains an alternative
+         implementation of
+         <typename>condition_variable</typename> named
+         <typename>condition_variable_any</typename>.
+         
+         <br/><br/>
+         
+         The only difference between the two is that
+         <typename>condition_variable_any</typename>
+         provides <function_name>wait</function_name>
+         functions that accept any
+         <a href="https://en.cppreference.com/w/cpp/named_req/BasicLockable">lockable object</a>, not
+         just <typename>unique_lock</typename>:
+         </p>
+         
+         <pre><code>#include &lt;condition_variable&gt;
+#include &lt;mutex&gt;
+
+::std::mutex
+   mutex;
+
+::std::condition_variable_any
+   condition;
+
+bool
+   is_ready = true;
+
+int main(int argc, char ** argv)
+{
+   condition.wait
+      (
+      mutex,
+      [] (void) { return is_ready; }
+      )
+      ;
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

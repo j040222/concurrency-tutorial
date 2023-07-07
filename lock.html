@@ -1,0 +1,93 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::lock</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>lock</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <function_name>lock</function_name> can be used to
+         lock multiple <typename>mutexes</typename>
+         simultaneously. Resource deadlock is avoided if
+         more than one <typename>mutex</typename> is locked
+         at the same time.
+         
+         <br/><br/>
+         
+         The order in which
+         <function_name>lock</function_name> calls
+         <typename>mutex</typename>.
+         <function_name>lock()</function_name> and
+         <typename>mutex</typename>.
+         <function_name>unlock()</function_name> is not
+         specified but, if an exception occurs due to either
+         function, then all <typename>mutexes</typename>
+         are unlocked before the exception is rethrown.
+         </p>
+         
+         <pre><code>#include &lt;mutex&gt;
+
+::std::mutex
+   mutex0,
+   mutex1;
+
+::std::timed_mutex
+   mutex2;
+
+int main(int argc, char ** argv)
+{
+   //
+   // Mutexes do not need to be of the same type:
+   //
+   
+   ::std::lock( mutex0, mutex1, mutex2 );
+   
+   mutex0.unlock();
+   mutex1.unlock();
+   mutex2.unlock();
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

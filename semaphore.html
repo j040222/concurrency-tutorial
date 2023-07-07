@@ -1,0 +1,163 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::counting_semaphore</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>counting_semaphore</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         Semaphores, like <typename>mutexes</typename>,
+         exclude <typename>threads</typename> from critical
+         sections of code. Unlike
+         <typename>mutexes</typename>, semaphores allow more
+         than one <typename>thread</typename> to access the
+         critical section at a time.
+         
+         <br/><br/>
+         
+         Semaphores are often used when 
+         <i>N&gt;1</i> <typename>threads</typename> are
+         allowed to access a critical section at a time.
+         Other threads are excluded until one of the
+         resident <typename>threads</typename> exits the
+         critical section.
+         
+         <br/><br/>
+         
+         <typename>::std::counting_semaphore</typename>
+         contains a counter which decrements by one whenever
+         <typename>counting_semaphore</typename>.
+         <function_name>acquire</function_name> is called.
+         The counter increases by one whenever
+         <typename>counting_semaphore</typename>.
+         <function_name>release</function_name> is called.
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;syncstream&gt;
+
+#include &lt;semaphore&gt;
+#include &lt;thread&gt;
+#include &lt;vector&gt;
+
+::std::counting_semaphore&lt;3u&gt;
+   semaphore(3u);
+
+void function(unsigned thread_index)
+{
+   semaphore.acquire();
+   
+   //
+   // Only 3 threads are allowed in this section at a time:
+   //
+   
+   ::std::osyncstream(::std::cout)
+      &lt;&lt; "Thread "
+      &lt;&lt; thread_index
+      &lt;&lt; " is in the critical section"
+      &lt;&lt; ::std::endl
+         ;
+   
+   ::std::this_thread::sleep_for
+      (
+      ::std::chrono::seconds(3)
+      )
+      ;
+   
+   semaphore.release();
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::vector
+      &lt;
+      ::std::jthread
+      &gt;
+      threads;
+   
+   unsigned const
+      number_of_threads(10);
+   
+   for(unsigned i(0u); i&lt; number_of_threads; ++i)
+   {
+      threads.emplace_back( function, i );
+      
+      continue;
+   }
+   
+   return 0;
+}</code></pre>
+         
+         Possible output:
+         
+         <div class="program_output">Thread 1 is in the critical section
+Thread 2 is in the critical section
+Thread 0 is in the critical section
+... (pauses) ...
+Thread 3 is in the critical section
+Thread 4 is in the critical section
+Thread 6 is in the critical section
+... (pauses) ...
+Thread 5 is in the critical section
+Thread 9 is in the critical section
+Thread 7 is in the critical section
+... (pauses) ...
+Thread 8 is in the critical section</div>
+         
+         <h1>binary_semaphore</h1>
+         
+         <p>
+         <typename>::std::binary_semaphore</typename> is
+         an alias for <typename>::std::counting_semaphore
+         &lt;1&gt;
+         </typename>. Implementations may specialize
+         <typename>::std::counting_semaphore
+         &lt;1&gt;</typename> so that <typename>
+         ::std::binary_semaphore</typename> is more
+         efficient than a counting semaphore.
+         </p>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

@@ -1,0 +1,96 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::recursive_mutex</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>recursive_mutex</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <typename>recursive_mutexes</typename> differ from
+         regular <typename>mutexes</typename> in that they
+         allow recursive locking: a thread can lock a
+         recursive mutex twice (or more times) without
+         blocking itself. Other threads are still excluded.
+         
+         <br/><br/>
+         
+         <typename>recursive_mutexes</typename> are used
+         when a thread will repeatedly enter sections of
+         protected code as a result of recursion:
+         </p>
+         
+         <pre><code>#include &lt;mutex&gt;
+#include &lt;thread&gt;
+
+::std::recursive_mutex
+   mutex;
+
+void function0(void)
+{
+   ::std::lock_guard
+      &lt;
+      ::std::recursive_mutex
+      &gt;
+      lock(mutex);            // Does not block
+}
+
+void function1(void)
+{
+   ::std::lock_guard
+      &lt;
+      ::std::recursive_mutex
+      &gt;
+      lock(mutex);
+   
+   function0();
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::jthread( function1 );
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

@@ -1,0 +1,129 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::stop_source</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>stop_source</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         Stop sources provide a means to issue
+         <typename>thread</typename> stop requests. A stop
+         request asks a <typename>thread</typename> to stop
+         execution. Stop <i>sources</i> can send stop
+         requests to multiple <typename>threads</typename>
+         simultaneously.
+         </p>
+         
+         <p>
+         The stop request does not need to be honoured by
+         the signalled <typename>thread(s)</typename>.
+         To honour the stop request, construct a
+         <typename>stop_token</typename> from the
+         <typename>stop_source</typename> and check the
+         function named <function_name>stop_requested()
+         </function_name>.
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;syncstream&gt;
+
+#include &lt;thread&gt;
+
+void task
+   (
+   unsigned
+      thread_id
+         ,
+   ::std::stop_source
+      source
+   )
+{
+   auto
+      stop_token = source.get_token();
+   
+   while
+      (
+         not stop_token.stop_requested()
+      )
+   {
+      ::std::this_thread::sleep_for
+         (
+         ::std::chrono::seconds(1)
+         )
+         ;
+   }
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Thread "
+                                   &lt;&lt; thread_id
+                                   &lt;&lt; " stopped"
+                                   &lt;&lt; ::std::endl
+                                      ;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::stop_source
+      source;
+   
+   ::std::jthread t0( task, 0u, source );
+   ::std::jthread t1( task, 1u, source );
+   ::std::jthread t2( task, 2u, source );
+   ::std::jthread t3( task, 3u, source );
+   
+   ::std::this_thread::sleep_for
+      (
+      ::std::chrono::seconds(5)
+      )
+      ;
+   
+   //
+   // Stop all 4 threads:
+   //
+   
+   source.request_stop();
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

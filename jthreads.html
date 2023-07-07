@@ -1,0 +1,162 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::jthread</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>jthread</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <typename>jthreads</typename> differ from threads
+         in two key ways as follows:
+
+         <ul>
+         <li> the <typename>jthread</typename> dtor calls
+         <function_name>join()</function_name>, which waits
+         for the thread to finish execution, and:
+
+         <li> <typename>jthreads</typename> can be
+         <i>stopped</i> in certain circumstances.
+         </ul>
+         
+         </p>
+         
+         <pre><code>#include &lt;thread&gt;
+
+void worker(unsigned thread_id)
+{
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   {
+   
+   ::std::jthread
+      thread( worker, 0u );
+   
+   // thread.join() is automatically called by the dtor
+   
+   }
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         
+         To stop a <typename>jthread</typename>, add a
+         <typename>stop_token</typename> to the argument
+         list of the thread entrypoint. The <typename>
+         stop_token</typename> can be used to request an
+         execution stop.
+         
+         </p>
+         
+         <p>
+         
+         The token reveals whether or not a stop has been
+         requested:
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+
+#include &lt;thread&gt;
+
+void worker
+   (
+   ::std::stop_token
+      stop
+         ,
+   unsigned
+      thread_id
+   )
+{
+   unsigned
+      index = 0u;
+   
+   while
+      (
+         //
+         // Continue until request_stop is called:
+         //
+      not stop.stop_requested()
+      )
+   {
+      ::std::cout &lt;&lt; index++ &lt;&lt; " ";
+      
+      ::std::cout.flush();
+      
+      ::std::this_thread::sleep_for
+         (
+         ::std::chrono::seconds(1)
+         )
+         ;
+   }
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::jthread
+      thread( worker, 0u );
+   
+   ::std::this_thread::sleep_for
+      (
+      ::std::chrono::milliseconds(5100)
+      )
+      ;
+   
+   thread.request_stop();           // Request stop
+   
+   ::std::cout &lt;&lt; ::std::endl;
+   
+   return 0;
+}</code></pre>
+         
+         Output:
+         
+         <div class="program_output">0 (pause) 1 (pause) 2 (pause...) 3 4 5</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

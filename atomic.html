@@ -1,0 +1,275 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::atomic</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>atomic</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         
+         <typename>Atomics</typename> have the following
+         synchronization property: if one
+         <typename>thread</typename> writes to an
+         <typename>atomic</typename> at the
+         same time that another <typename>thread</typename>
+         reads from it, the outcome is well-defined.
+         
+         </p>
+         <p>
+         
+         Nonatomic types, like <typename>int</typename> and
+         <typename>unsigned</typename>, do not have this
+         property: if two <typename>threads</typename>
+         increment an <typename>integer</typename> at the
+         same time, the result may be only one increment,
+         not two.
+         
+         </p>
+         <p>
+         
+         <typename>Atomics</typename> cannot be copied or
+         moved, and modification of atomics involves their
+         <function_name>load</function_name> and
+         <function_name>store</function_name> functions as
+         well as <function_name>operator=</function_name>. 
+         C++11 contains many free functions that modify
+         <typename>atomics</typename>.
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+#include &lt;atomic&gt;
+#include &lt;thread&gt;
+
+int main(int argc, char ** argv)
+{
+   {
+   
+   ::std::atomic &lt;int&gt;
+      atomic( 42 );
+   
+   atomic.store( 43 );
+   
+   auto
+      value_stored = atomic.load();
+   
+   //
+   // Alternatively:
+   //
+   
+   value_stored = (int) atomic;
+   
+   ::std::cout &lt;&lt; value_stored               // 43
+               &lt;&lt; ::std::endl
+                  ;
+   
+   //
+   // Exchange the stored value and get the previous value:
+   //
+   
+   value_stored = atomic.exchange( 42 );
+   
+   ::std::cout &lt;&lt; atomic                     // 42
+               &lt;&lt; ::std::endl
+                  ;
+   
+   }
+   
+   //
+   // There are many type aliases and specializations for
+   // integer (and boolean and char) atomic types:
+   //
+   
+   {
+   
+   ::std::atomic_uint32_t
+      atomic;
+   
+   atomic.fetch_xor( (uint32_t)1 ); // Perform XOR on the
+                                    // stored value, and
+                                    // return the value held
+                                    // previously.
+   
+   }
+   
+   //
+   // Multiple threads can modify an atomic simultaneously,
+   // whereas only one should modify a non-atomic at a time:
+   //
+   
+   {
+   
+   ::std::atomic_uint
+      atomic_counter(0u);
+   unsigned
+      nonatomic_counter(0u);
+   
+   {
+   
+   ::std::vector
+      &lt;
+      ::std::jthread
+      &gt;
+      threads;
+   
+   auto
+      function =
+      [&] (void)
+      {
+         for( unsigned i(0u); i&lt; 1000u; ++i )
+         {
+            ++atomic_counter;
+               //
+               // Multiple concurrent increments may only
+               // increment nonatomic_counter by 1:
+               //
+            ++nonatomic_counter;
+         }
+      }
+      ;
+   
+   for( int i(0); i&lt; 10u; ++i )
+   {
+      threads.emplace_back( function );
+   }
+   
+   }
+   
+   ::std::cout &lt;&lt; "Counter with atomics: "
+               &lt;&lt; atomic_counter
+               &lt;&lt; ::std::endl
+               &lt;&lt; "Without atomics: "
+               &lt;&lt; nonatomic_counter
+               &lt;&lt; ::std::endl
+                  ;
+   
+   }
+   
+   {
+   
+   //
+   // C++11 also contains many free functions that modify
+   // atomics:
+   //
+   
+   ::std::atomic_uint
+      atomic;
+   
+   ::std::atomic_store( &atomic, 42u );
+   
+   unsigned
+      stored_value = ::std::atomic_load( &atomic );
+   
+   stored_value =
+      ::std::atomic_fetch_add( &atomic, 1u );
+   
+   }
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         Possible outputs:
+         </p>
+         
+         <div class="program_output">43
+42
+Counter with atomics: 10000
+Without atomics: 8841</div>
+         
+         <p>
+         
+         Note that the nonatomic counter is less than
+         10000, which was the true number of loops.
+         
+         </p>
+         
+         <p>
+         
+         In C++20, <typename>atomic</typename> also provides
+         <function_name>notify</function_name>-<function_name>wait</function_name> functionality.
+         To wait for the value of an
+         <typename>atomic</typename> to change, use
+         <function_name>wait</function_name> and
+         <function_name>notify_one</function_name> as
+         follows:
+         
+         </p>
+         
+         <pre><code>#include &lt;chrono&gt;
+
+#include &lt;atomic&gt;
+#include &lt;thread&gt;
+
+int main(int argc, char ** argv)
+{
+   ::std::atomic_int
+      atomic(42);
+   
+   ::std::jthread
+      thread
+         (
+            [&atomic] (void)
+            {
+               ++atomic;
+               
+               ::std::this_thread::sleep_for
+                  (
+                  ::std::chrono::seconds(3)
+                  )
+                  ;
+               
+               atomic.notify_one();
+            }
+         )
+         ;
+   
+   atomic.wait(42);                 // Waits for notify_one
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

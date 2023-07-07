@@ -1,0 +1,227 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::future</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>future</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         
+         <typename>Futures</typename> are a way to access
+         the results of asynchronous operations.
+         
+         </p>
+         <p>
+         
+         <typename>Threads</typename> can wait for the value
+         of a <typename>future</typename> to be assigned.
+         <typename>Futures</typename> provide a function
+         named <function_name>get</function_name> which
+         returns the value stored in the
+         <typename>future</typename> after it is assigned. 
+
+         </p>
+         <p>
+
+         Typically a <typename>future</typename> is created
+         in one of 3 ways as follows:
+         
+         </p>
+         
+         <p>
+         
+         Via the result of a
+         <typename>packaged task</typename>:
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;future&gt;
+#include &lt;thread&gt;
+
+int main(int argc, char ** argv)
+{
+   //
+   // Get a future from a packaged task:
+   //
+   
+   ::std::packaged_task &lt; int (void) &gt;
+      task( [] (void) { return 42; } );
+   
+   ::std::future &lt;int&gt;
+      future = task.get_future();
+   
+   ::std::jthread
+      thread( ::std::move( task ) );
+   
+   future.wait();
+   
+   ::std::cout &lt;&lt; future.get() &lt;&lt; ::std::endl;
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         
+         Via a <typename>promise</typename>:
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;future&gt;
+#include &lt;thread&gt;
+
+int main(int argc, char ** argv)
+{
+   //
+   // Get a future from a promise object:
+   //
+   
+   ::std::promise &lt;int&gt;
+      promise;
+   
+   ::std::future &lt;int&gt;
+      future = promise.get_future();
+   
+   ::std::jthread
+      thread( [&promise] { promise.set_value( 42 ); } );
+   
+   future.wait();
+   
+   ::std::cout &lt;&lt; future.get() &lt;&lt; ::std::endl;
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         
+         Via <function_name>::std::async</function_name>:
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;future&gt;
+#include &lt;thread&gt;
+
+int main(int argc, char ** argv)
+{
+   //
+   // Get a future from ::std::async:
+   //
+   
+   ::std::future &lt;int&gt;
+      future =
+         ::std::async
+            (
+            ::std::launch::async,
+            [] (void) { return 42; }
+            )
+            ;
+   
+   future.wait();
+   
+   ::std::cout &lt;&lt; future.get() &lt;&lt; ::std::endl;
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         <typename>Futures</typename> can also be converted
+         to <typename>::std::shared_future</typename>
+         objects, which can be copied.
+         <typename>shared_futures</typename> can be used to
+         make multiple <typename>threads</typename> wait for
+         the same shared state.
+         </p>
+         
+         <p>
+         <typename>shared_future&lt;void&gt;</typename> can 
+         be used to signal multiple threads:
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;syncstream&gt;
+
+#include &lt;future&gt;
+#include &lt;thread&gt;
+
+void
+do_work
+   (
+   unsigned
+      thread_index
+         ,
+   ::std::shared_future &lt;void&gt;
+      future
+   )
+{
+   future.wait();
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Thread "
+                                   &lt;&lt; thread_index
+                                   &lt;&lt; " worked"
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::promise &lt;void&gt;
+      is_ready;
+   
+   ::std::shared_future &lt;void&gt;
+      future( is_ready.get_future() );
+   
+   ::std::jthread
+      worker0( do_work, 0u, future ),
+      worker1( do_work, 1u, future );
+   
+   is_ready.set_value();            // Activate both threads
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

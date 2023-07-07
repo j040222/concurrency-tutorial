@@ -1,0 +1,179 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::thread</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>thread</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <typename>Threads</typename> allow multiple
+         functions (including lambda functions and functions
+         with bound arguments) to run simultaneously.
+         Depending on your computer system, and how many
+         <typename>threads</typename> are running, these
+         <typename>threads</typename> may run in parallel or
+         they may stop and start to give the illusion of
+         parallel execution.
+         </p>
+         
+         <p>
+         Create a <typename>thread</typename> by passing a
+         function or a callable object (eg. an object with a
+         function with signature <function_name>void
+         operator()</function_name>, or a lambda
+         function) to its constructor. Once the
+         <typename>thread</typename> has been created it
+         will start running. Call
+         <typename>thread</typename>.
+         <function_name>join()</function_name> on the parent
+         <typename>thread</typename> to synchronize the
+         parent <typename>thread</typename> with the
+         termination of the child.
+         </p>
+         
+         <p>
+         <typename>Threads</typename> can be <i>detached</i>
+         after they are created. Detached
+         <typename>threads</typename> are no longer owned by
+         the <typename>thread</typename> object that
+         launched them and do not need to be joined.
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+
+#include &lt;thread&gt;
+
+void task(unsigned thread_id)
+{
+}
+
+struct Callable final
+{
+   void operator() (void)
+   {
+   }
+}
+;
+
+int main(int argc, char ** argv)
+{
+   {
+   
+   ::std::thread
+      thread( task, 0u );
+   
+   //
+   // Get the ID of the thread:
+   //
+   
+   ::std::cout &lt;&lt; "Thread ID: "
+               &lt;&lt; thread.get_id()
+               &lt;&lt; ::std::endl
+                  ;
+   
+   thread.join();
+   
+   }
+   
+   {
+   
+   Callable
+      object;
+   
+   ::std::thread
+      thread( object );
+   
+   thread.join();
+   
+   }
+   
+   {
+   
+   ::std::thread
+      thread( task, 2u );
+   
+   //
+   // Get the ID of the thread:
+   //
+   
+   ::std::cout &lt;&lt; "Thread ID: "
+               &lt;&lt; thread.get_id()
+               &lt;&lt; ::std::endl
+                  ;
+   
+   thread.detach();
+   
+   // thread.join();       // Throws ::std::system_error
+   
+   }
+   
+   {
+   
+   ::std::thread
+      thread( task, 3u );
+   
+   ::std::cout &lt;&lt; "Is jointable: "
+               &lt;&lt; thread.joinable()       // True
+               &lt;&lt; ::std::endl
+                  ;
+   
+   thread.join();
+   
+   ::std::cout &lt;&lt; "Is jointable: "
+               &lt;&lt; thread.joinable()       // False
+               &lt;&lt; ::std::endl
+                  ;
+   
+   }
+   
+   return 0;
+}</code></pre>
+         
+         Output:
+         
+         <div class="program_output">Thread ID: 140338842826304
+Is jointable: 1
+Is jointable: 0</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

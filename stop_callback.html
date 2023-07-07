@@ -1,0 +1,139 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::stop_callback</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>stop_callback</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         Stop callbacks are callback functions that are
+         attached to <typename>thread</typename>
+         <typename>stop_requests</typename>. Once a
+         stop request is issued, the callback function is
+         executed.
+         </p>
+         
+         <p>
+         Note that the callback is executed on the
+         <typename>thread</typename> that registered it, not
+         on the <typename>thread</typename> that was
+         stopped by the stop request.
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;syncstream&gt;
+
+#include &lt;thread&gt;
+
+void task
+   (
+   ::std::stop_token
+      stop_token
+   )
+{
+   while
+      (
+         not stop_token.stop_requested()
+      )
+   {
+      ::std::this_thread::sleep_for
+         (
+         ::std::chrono::seconds(1)
+         )
+         ;
+   }
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Thread "
+                                   &lt;&lt; ::std::
+                                         this_thread::
+                                            get_id()
+                                   &lt;&lt; " stopped"
+                                   &lt;&lt; ::std::endl
+                                      ;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::jthread
+      thread( task );
+   
+   ::std::this_thread::sleep_for
+      (
+      ::std::chrono::seconds(3)
+      )
+      ;
+   
+   ::std::stop_callback
+      callback
+         (
+         thread.get_stop_token(),
+         [] (void)
+            {
+               ::std::osyncstream(::std::cout)
+                  &lt;&lt; "Thread "
+                  &lt;&lt; ::std::this_thread::get_id()
+                  &lt;&lt; " callback"
+                  &lt;&lt; ::std::endl
+                     ;
+            }
+         )
+         ;
+   
+   //
+   // Stop the thread:
+   //
+   
+   thread.request_stop();
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         Possible output:
+         </p>
+         
+         <div class="program_output">Thread 139764672713664 callback
+Thread 139764665677376 stopped</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

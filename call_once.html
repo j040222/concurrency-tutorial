@@ -1,0 +1,178 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::call_once</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>call_once</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <function_name>call_once</function_name> can be
+         used to call a function (or a callable object)
+         exactly once, even if it is executed by more than
+         one <typename>thread</typename>.
+         
+         <br/><br/>
+         
+         It does this by accepting a flag as its first
+         argument: the state of the flag indicates whether
+         or not the callable object has been used.
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;mutex&gt;
+#include &lt;thread&gt;
+
+::std::once_flag
+   once;
+
+void worker(unsigned thread_id)
+{
+   ::std::call_once
+      (
+      once,
+      [&thread_id]
+      {
+         ::std::cout &lt;&lt; "Thread "
+                     &lt;&lt; thread_id
+                     &lt;&lt; " did the work"
+                     &lt;&lt; ::std::endl;
+      }
+      )
+      ;
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::jthread( worker, 0u );
+   ::std::jthread( worker, 1u );
+   ::std::jthread( worker, 2u );
+   ::std::jthread( worker, 3u );
+   
+   return 0;
+}</code></pre>
+         
+         Possible output:
+         
+         <div class="program_output">Thread 0 did the work</div>
+         
+         <p>
+         If the callable object raises an exception rather
+         than returning normally, then the flag is not
+         flipped and the next call to
+         <function_name>call_once</function_name> will
+         evaluate the callable again (and so on, until it
+         does not raise an exception).
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;exception&gt;
+
+#include &lt;mutex&gt;
+#include &lt;thread&gt;
+
+::std::once_flag
+   once;
+
+void worker(unsigned thread_id, bool do_raise_exception)
+{
+   try
+   {
+      ::std::call_once
+         (
+         once,
+         [&]
+         {
+            //
+            // Raise an exception if do_raise_exception
+            // is true, otherwise return normally:
+            //
+            
+            if (
+                  do_raise_exception
+               )
+            {
+               ::std::cout &lt;&lt; "Thread "
+                           &lt;&lt; thread_id
+                           &lt;&lt; " raised an exception"
+                           &lt;&lt; ::std::endl;
+               
+               throw ::std::runtime_error("error");
+               
+               return;
+            }
+            
+            ::std::cout &lt;&lt; "Thread "
+                        &lt;&lt; thread_id
+                        &lt;&lt; " did the work"
+                        &lt;&lt; ::std::endl;
+         }
+         )
+         ;
+   }
+   catch( ... )
+   {
+   }
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::jthread( worker, 0u, true );
+   ::std::jthread( worker, 1u, true );
+   ::std::jthread( worker, 2u, false );
+   ::std::jthread( worker, 3u, true );
+   
+   return 0;
+}</code></pre>
+         
+         Possible output:
+         
+         <div class="program_output">Thread 0 raised an exception
+Thread 1 raised an exception
+Thread 2 did the work</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

@@ -1,0 +1,198 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::shared_lock</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>shared_lock</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <typename>shared_lock</typename> is to
+         <typename>::std::shared_mutex</typename> what
+         <typename>unique_lock</typename> is to
+         <typename>::std::mutex</typename>.
+         <typename>shared_lock</typename> locks a
+         <typename>shared_mutex</typename>, but allows
+         concurrent use of the <typename>mutex</typename> by
+         other <typename>shared_lock</typename> objects.
+         Once locked using <typename>lock_guard</typename>,
+         all <typename>shared_locks</typename> are excluded.
+         This allows <i>multiple-reader single-writer</i>
+         behaviour: multiple
+         <typename>shared_locks</typename> can lock a
+         <typename>shared_mutex</typename> simultaneously,
+         but only one <typename>lock_guard</typename> can
+         lock it at a time.
+         </p>
+         
+         <pre><code>#include &lt;syncstream&gt;
+#include &lt;iostream&gt;
+
+#include &lt;thread&gt;
+#include &lt;shared_mutex&gt;
+#include &lt;memory&gt;
+#include &lt;vector&gt;
+
+::std::shared_mutex
+   mutex;
+
+::std::string
+   content = "Initial Content";
+
+//
+// Read the content:
+//
+
+void read_action(unsigned reader_index)
+{
+   ::std::shared_lock
+      &lt;
+      ::std::shared_mutex
+      &gt;
+      lock
+         (
+         mutex
+         )
+         ;
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Reader "
+                                   &lt;&lt; reader_index
+                                   &lt;&lt; " reads: \""
+                                   &lt;&lt; content
+                                   &lt;&lt; "\""
+                                   &lt;&lt; ::std::endl
+                                      ;
+}
+
+//
+// Modify (write to) the content:
+//
+
+void write_action(void)
+{
+   ::std::lock_guard
+      &lt;
+      ::std::shared_mutex
+      &gt;
+      lock
+         (
+         mutex
+         )
+         ;
+   
+   content = "Modified Content";
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Writer wrote: \""
+                                   &lt;&lt; content
+                                   &lt;&lt; "\""
+                                   &lt;&lt; ::std::endl
+                                      ;
+}
+
+int main(int argc, char ** argv)
+{
+   //
+   // Create multiple content readers and only 1 writer:
+   //
+   
+   ::std::vector
+      &lt;
+      ::std::thread
+      &gt;
+      reader_threads;
+   
+   ::std::unique_ptr
+      &lt;
+      ::std::thread
+      &gt;
+      writer_thread;
+   
+   ::std::size_t
+      number_of_threads(10u);
+   
+   reader_threads.reserve( number_of_threads );
+   
+   for(unsigned i(0u); i&lt; number_of_threads; ++i)
+   {
+      reader_threads.push_back
+         (
+         ::std::thread(read_action, i)
+         )
+         ;
+   }
+   
+   writer_thread =
+      ::std::make_unique
+         &lt;
+         ::std::thread
+         &gt;
+         (
+         write_action
+         )
+         ;
+   
+   for(auto & thread : reader_threads)
+   {
+      thread.join();
+   }
+   
+   writer_thread-&gt;join();
+   
+   return 0;
+}</code></pre>
+         
+         Possible output:
+         
+         <div class="program_output">Reader 1 reads: "Initial Content"
+Reader 0 reads: "Initial Content"
+Reader 2 reads: "Initial Content"
+Reader 4 reads: "Initial Content"
+Reader 5 reads: "Initial Content"
+Reader 3 reads: "Initial Content"
+Reader 6 reads: "Initial Content"
+Reader 7 reads: "Initial Content"
+Reader 8 reads: "Initial Content"
+Writer wrote: "Modified Content"
+Reader 9 reads: "Modified Content"</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

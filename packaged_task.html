@@ -1,0 +1,144 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::packaged_task</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>packaged_task</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         
+         <typename>packaged_task</typename> creates a
+         callable object out of a work function, which a
+         <typename>thread</typename> then evaluates. 
+         
+         </p>
+         
+         <p>
+         
+         <typename>packaged_task</typename> differs from
+         <function_name>::std::async</function_name> because
+         the work function is not called until
+         <typename>packaged_task</typename> is passed to a
+         <typename>thread</typename>.
+         
+         </p>
+         
+         <p>
+         
+         Note that some or all of the arguments of the work
+         function can be bound using <function_name>
+         ::std::bind:</function_name>
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;cmath&gt;
+#include &lt;functional&gt;
+
+#include &lt;future&gt;
+#include &lt;thread&gt;
+
+unsigned do_work(unsigned x, unsigned y)
+{
+   return std::pow(x, y);
+}
+
+int main(int argc, char ** argv)
+{
+   {
+   
+   ::std::packaged_task &lt; unsigned( unsigned, unsigned ) &gt;
+      task( do_work );
+   
+   auto
+      future = task.get_future();
+   
+   ::std::jthread
+      thread( ::std::move( task ), 2, 3 );
+   
+   future.wait();
+   
+   ::std::cout &lt;&lt; future.get()         // 2 ** 3 = 8
+               &lt;&lt; ::std::endl
+                  ;
+   
+   }
+   
+   {
+   
+   //
+   // Note that arguments can also be bound using
+   // ::std::bind:
+   //
+   
+   ::std::packaged_task &lt; unsigned(void) &gt;
+      task
+         (
+         ::std::bind( do_work, 2, 3 )
+         )
+         ;
+   
+   auto
+      future = task.get_future();
+   
+   ::std::jthread
+      thread( ::std::move( task ) );   // No arguments
+   
+   future.wait();
+   
+   ::std::cout &lt;&lt; future.get()         // 2 ** 3 = 8
+               &lt;&lt; ::std::endl
+                  ;
+   
+   }
+   
+   return 0;
+}</code></pre>
+         
+         Output:
+         
+         <div class="program_output">8
+8</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

@@ -1,0 +1,246 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::lock_guard</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>lock_guard</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <typename>lock_guard</typename> is the most basic
+         <typename>mutex</typename> wrapper. It provides
+         only two functions: a constructor and a destructor.
+         When a <typename>lock_guard</typename> object is
+         created, it takes ownership of the
+         <typename>mutex</typename> that it receives.
+         The <typename>mutex</typename> is locked until the
+         <typename>lock_guard</typename> is
+         destroyed.
+         </p>
+         
+         <pre><code>#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+#include &lt;thread&gt;
+#include &lt;mutex&gt;
+
+::std::vector
+   &lt;
+   unsigned
+   &gt;
+   data;
+
+::std::mutex
+   mutex;
+
+void load_data(unsigned value)
+{
+   //
+   // Sleep briefly, then upload a value to 'data':
+   //
+   
+   ::std::this_thread::sleep_for 
+      (
+      ::std::chrono::seconds(1)
+      )
+      ;
+   
+   //
+   // Lock the mutex:
+   //
+   
+   ::std::lock_guard
+      &lt;
+      ::std::mutex
+      &gt;
+      guard(mutex);
+   
+   data.push_back
+      (
+      value
+      )
+      ;
+   
+   //
+   // The mutex is automatically unlocked here:
+   //
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::vector
+      &lt;
+      ::std::thread
+      &gt;
+      threads;
+   
+   //
+   // Start 10 threads, each with a different value to
+   // insert into 'data':
+   //
+   
+   for(unsigned i = 0; i&lt; 10; ++i)
+   {
+      threads.push_back
+         (
+         ::std::thread( load_data, i )
+         )
+         ;
+   }
+   
+   for(unsigned i = 0; i&lt; 10; ++i)
+   {
+      threads[i].join();
+   }
+   
+   //
+   // Display the contents of 'data':
+   //
+   
+   for( auto const & datum : data )
+   {
+      ::std::cout &lt;&lt; datum &lt;&lt; " ";
+   }
+   ::std::cout &lt;&lt; ::std::endl;
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         Possible output:
+         </p>
+         
+         <div class="program_output">3 0 4 2 1 5 6 7 9 8</div>
+         
+         <p>
+         Note that, in general, the data was not inserted
+         in the order <i>0 1 2 3 4 5 6 7 8 9</i>. This is
+         because the threads competed to acquire a
+         <typename>lock_guard</typename> to the
+         <typename>mutex</typename>, and the order in which
+         the threads were successful is only known at
+         runtime.
+         </p>
+         
+         <p>
+         <typename>lock_guard</typename> objects can also
+         <i>adopt</i> existing locked mutexes. In this case,
+         the <typename>lock_guard</typename> is
+         initialized with a reference to locked
+         <typename>mutex</typename>. 
+         The <typename>mutex</typename> must be locked by
+         the same thread that adopts it. To use this
+         feature, add <typename>::std::adopt_lock</typename>
+         to the <typename>lock_guard</typename> constructor.
+         </p>
+         
+         <pre><code>#include &lt;mutex&gt;
+
+::std::mutex
+   mutex0,
+   mutex1;
+
+int main(int argc, char ** argv)
+{
+   {
+   
+   mutex0.lock();
+   
+   //
+   // Acquire the existing lock on mutex0:
+   //
+   
+   ::std::lock_guard
+      &lt;
+      ::std::mutex
+      &gt;
+      guard
+         (
+         mutex0,
+         ::std::adopt_lock
+         )
+         ;
+   
+   //
+   // mutex0 is unlocked here:
+   //
+   
+   }
+   
+   {
+   
+   //
+   // Adopt 2 locks locked by ::std::lock (which uses a
+   // deadlock avoidance algorithm to avoid deadlock):
+   //
+   
+   ::std::lock(mutex0, mutex1);
+   ::std::lock_guard
+      &lt;
+      ::std::mutex
+      &gt;
+      guard0
+         (
+         mutex0,
+         ::std::adopt_lock
+         )
+         ;
+   ::std::lock_guard
+      &lt;
+      ::std::mutex
+      &gt;
+      guard1
+         (
+         mutex1,
+         ::std::adopt_lock
+         )
+         ;
+   
+   }
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

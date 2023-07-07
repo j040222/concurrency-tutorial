@@ -1,0 +1,120 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::latch</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>latch</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <typename>Latches</typename> are downward counters.
+         The value of the counter is set using the class
+         constructor, after which calls to 
+         <typename>latch</typename>.
+         <function_name>count_down</function_name> and
+         <typename>latch</typename>.
+         <function_name>arrive_and_wait
+         </function_name> decrement the counter.
+         
+         <br/><br/>
+         
+         <typename>Threads</typename> can block on a
+         <typename>latch</typename> until the value of the
+         counter reaches zero.
+         
+         <br/><br/>
+         
+         A <typename>latch</typename> is a single-use
+         <typename>barrier</typename>.
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;syncstream&gt;
+
+#include &lt;thread&gt;
+#include &lt;vector&gt;
+#include &lt;latch&gt;
+
+unsigned const
+   number_of_threads = 10u;
+
+::std::latch
+   work_done(number_of_threads);
+
+void do_work(void)
+{
+   //
+   // Decrement 'work_done' and wait until it reaches zero:
+   //
+   
+   work_done.arrive_and_wait();
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::vector
+      &lt;
+      ::std::jthread
+      &gt;
+      threads;
+   
+   for(unsigned i(0u); i&lt; number_of_threads; ++i)
+   {
+      threads.emplace_back( do_work );
+      
+      continue;
+   }
+   
+   work_done.wait();
+   
+   //
+   // 10 threads have completed 'do_work'
+   //
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

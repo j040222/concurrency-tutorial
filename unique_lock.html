@@ -1,0 +1,215 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::lock_guard</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>unique_lock</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         Like <typename>lock_guard</typename>,
+         <typename>unique_lock</typename> is used to acquire
+         locks on <typename>mutexes</typename>. However,
+         unlike <typename>lock_guard</typename>,
+         <typename>unique_lock</typename> provides functions
+         for unlocking and releasing the
+         acquired <typename>mutex</typename>.
+         </p>
+         
+         <pre><code>#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+#include &lt;thread&gt;
+#include &lt;mutex&gt;
+#include &lt;memory&gt;
+
+::std::mutex
+   mutex;
+
+int main(int argc, char ** argv)
+{
+   //
+   // unique_lock differs from lock_guard in that
+   // unique_lock contains member functions for:
+   //    (a) locking and try-locking the underlying mutex;
+   //    (b) unlocking it;
+   //    (c) testing whether or not the mutex was locked
+   //        by itself;
+   //    (d) disassociating the mutex without unlocking it.
+   //
+   
+   {
+   
+   //
+   // Lock the mutex:
+   //
+   
+   ::std::unique_lock
+      &lt;
+      ::std::mutex
+      &gt;
+      guard(mutex);
+   
+   }
+   
+   {
+   
+   ::std::unique_lock
+      &lt;
+      ::std::mutex
+      &gt;
+      guard(mutex);
+   
+   //
+   // Release the mutex without unlocking it:
+   //
+   
+   guard.release();
+   
+   mutex.unlock();
+   
+   }
+   
+   {
+   
+   ::std::unique_lock
+      &lt;
+      ::std::mutex
+      &gt;
+      guard(mutex, ::std::defer_lock);
+   
+   //
+   // Test whether or not the guard owns the lock:
+   //
+   
+   ::std::cout &lt;&lt; ( guard.owns_lock() ? "" : "Not " )
+               &lt;&lt; "Locked"
+               &lt;&lt; ::std::endl;
+                     // Reads 'Not Locked'
+   
+   guard.lock();
+   
+   ::std::cout &lt;&lt; ( guard.owns_lock() ? "" : "Not " )
+               &lt;&lt; "Locked"
+               &lt;&lt; ::std::endl;
+                     // Reads 'Locked'
+   
+   }
+   
+   return 0;
+}</code></pre>
+         
+         <p>
+         
+         Since <typename>unique_lock</typename> provides a 
+         <function_name>lock</function_name> function,
+         locking of acquired <typename>mutexes</typename>
+         can be deferred using
+         <typename>::std::defer_lock</typename>:
+         
+         </p>
+         
+         <pre><code>{
+   
+   //
+   // Defer locking of the mutex:
+   //
+   
+   ::std::unique_lock
+      &lt;
+      ::std::mutex
+      &gt;
+      guard(mutex, ::std::defer_lock);
+   
+   guard.lock();
+   
+   guard.unlock();   // Also releases ownership
+   
+}</code></pre>
+         
+         
+         <p>
+         
+         If the underlying <typename>mutex</typename> has
+         type <typename>::std::timed_mutex</typename>, then
+         <typename>unique_lock</typename> provides a
+         <i>timed</i> locking function named
+         <function_name>try_lock_for</function_name>.
+         
+         </p>
+         
+         <p>
+         
+         <function_name>try_lock_for</function_name> can be
+         used to try to lock the <typename>mutex</typename>
+         for a set time period, after which locking is
+         abandoned (and, in this case,
+         <function_name>try_lock_for</function_name> returns
+         false):
+         
+         </p>
+         
+         <pre><code>{
+   
+   //
+   // Try to lock a timed mutex for 2 seconds:
+   //
+   
+   ::std::timed_mutex
+      mutex;
+   
+   ::std::unique_lock
+      &lt;
+      ::std::timed_mutex
+      &gt;
+      guard(mutex, ::std::defer_lock);
+   
+   guard.try_lock_for
+      (
+      ::std::chrono::seconds(2)
+      )
+      ;
+   
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

@@ -1,0 +1,121 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::async</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>async</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         
+         <function_name>::std::async</function_name> can be
+         used to launch a function asynchronously. The
+         return value of the function is stored in a
+         <typename>future</typename> object, which is
+         returned by <function_name>::std::async
+         </function_name>.
+         
+         </p>
+         
+         <p>
+         
+         <function_name>::std::async</function_name> accepts
+         an optional policy argument which, if given, should
+         be the first argument. Allowed values include
+         <function_name>::std::launch::async</function_name>
+         and <function_name>std::launch::deferred
+         </function_name>. The former launches the function
+         on a different thread, which is created and managed 
+         by <function_name>::std::async</function_name>. The 
+         latter lazily evaluates the function the first time
+         its return value is evaluated using the
+         <typename>future</typename>.
+         
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;future&gt;
+
+int do_work(void)
+{
+   return 42;
+}
+
+int main(int argc, char ** argv)
+{
+   auto
+      future = ::std::async( std::launch::async, do_work );
+   
+   future.wait();
+   
+   ::std::cout &lt;&lt; future.get() &lt;&lt; ::std::endl;
+   
+   return 0;
+}</code></pre>
+         
+         Output:
+         
+         <div class="program_output">42</div>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;future&gt;
+
+int do_work(void)
+{
+   return 42;
+}
+
+int main(int argc, char ** argv)
+{
+   auto
+      future =
+         ::std::async( std::launch::deferred, do_work );
+   
+   ::std::cout &lt;&lt; future.get() // do_work is evaluated here
+               &lt;&lt; ::std::endl
+                  ;
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

@@ -1,0 +1,116 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::timed_mutex</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>timed_mutex</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <typename>timed_mutexes</typename> differ from
+         regular <typename>mutexes</typename> in that they
+         provide <i>timed</i> locking functions.
+         
+         <br/><br/>
+         
+         <typename>timed_mutex</typename>.
+         <function_name>try_lock_for</function_name> tries
+         to lock a <typename>mutex</typename> until a 
+         specified duration has elapsed. 
+         <typename>timed_mutex</typename>.
+         <function_name>try_lock_until</function_name> tries
+         to lock the <typename>mutex</typename> until a
+         specific time point. Both functions return false
+         if, after the duration has elapsed, locking was
+         unsuccessful. Note that both of these functions may
+         block for longer than the specified timeout
+         duration due to scheduling or resource contention
+         delays.
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;mutex&gt;
+#include &lt;thread&gt;
+
+::std::timed_mutex
+   mutex;
+
+void function(unsigned thread_index)
+{
+   auto const
+      time_now = ::std::chrono::steady_clock::now();
+   
+   if (
+         mutex.try_lock_until
+            (
+            time_now + ::std::chrono::seconds(1)
+            )
+      )
+   {
+      ::std::this_thread::sleep_for
+         (
+         ::std::chrono::seconds(2)
+         )
+         ;
+      
+      mutex.unlock();
+   }
+   else
+   {
+      ::std::cout &lt;&lt; "Thread "
+                  &lt;&lt; thread_index
+                  &lt;&lt; " was excluded"
+                  &lt;&lt; ::std::endl
+                     ;
+   }
+}
+
+int main(int argc, char ** argv)
+{
+   ::std::jthread(function, 0u);
+   ::std::jthread(function, 1u);
+   
+   return 0;
+}</code></pre>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 

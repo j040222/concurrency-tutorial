@@ -1,0 +1,159 @@
+ <!DOCTYPE html>
+<html lang="en">
+   <meta charset="UTF-8">
+   <title>C++ Concurrency Tutorial : ::std::shared_mutex</title>
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   
+   <link rel="stylesheet" href="./styles.css">
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      >
+   <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+      >
+   
+   <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+      >
+   </script>
+   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+      >
+   </script>
+   
+   <body>
+      <div class="content-column">
+         <h1>shared_mutex</h1>
+         
+         <p class="go_back_hyperlink">
+            <i class="paper plane outline icon"></i>
+            <a href="./index.html">Back to index</a>
+         </p>
+         
+         <p>
+         <typename>shared_mutexes</typename> differ from
+         regular <typename>mutexes</typename> in that they
+         allow two locking modes as follows:
+         <ul>
+            <li><i>exclusive</i> locking mode, which can be
+                held by only one thread at a time;
+            <li><i>shared</i> locking mode, which can be
+                held by by multiple threads at a time.
+         </ul>
+         
+         <typename>shared_mutexes</typename> are often
+         used where multiple readers and single writers
+         require synchronized access to a resource. In this
+         case, readers have shared access (multiple readers
+         can read the resource at once) but only one writer
+         can have exclusive access (and all readers must
+         wait for it).
+         </p>
+         
+         <pre><code>#include &lt;iostream&gt;
+#include &lt;syncstream&gt;
+
+#include &lt;shared_mutex&gt;
+#include &lt;thread&gt;
+#include &lt;vector&gt;
+
+::std::shared_mutex
+   mutex;
+
+::std::string
+   content = "Initial Content";
+
+void reader(unsigned thread_index)
+{
+   mutex.lock_shared();
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Thread "
+                                   &lt;&lt; thread_index
+                                   &lt;&lt; " read: \""
+                                   &lt;&lt; content
+                                   &lt;&lt; "\""
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   mutex.unlock_shared();
+   
+   return;
+}
+
+void modify_content(void)
+{
+   mutex.lock();
+   
+   content = "Modified Content";
+   
+   ::std::osyncstream(::std::cout) &lt;&lt; "Writer modified "
+                                      "content"
+                                   &lt;&lt; ::std::endl
+                                      ;
+   
+   mutex.unlock();
+   
+   return;
+}
+
+int main(int argc, char ** argv)
+{
+   //
+   // Create 10 reader threads and one writer thread:
+   //
+   
+   ::std::vector
+      &lt;
+      ::std::jthread
+      &gt;
+      readers;
+   
+   unsigned const
+      number_of_threads = 10u;
+   
+   for(unsigned i(0u); i&lt; number_of_threads; ++i)
+   {
+      readers.push_back
+         (
+         ::std::jthread( reader, i )
+         )
+         ;
+   }
+   
+   ::std::jthread
+      writer(modify_content);
+   
+   return 0;
+}</code></pre>
+         
+         Possible output:
+         
+         <div class="program_output">Thread 0 read: "Initial Content"
+Thread 3 read: "Initial Content"
+Thread 2 read: "Initial Content"
+Thread 5 read: "Initial Content"
+Thread 4 read: "Initial Content"
+Thread 6 read: "Initial Content"
+Thread 1 read: "Initial Content"
+Thread 7 read: "Initial Content"
+Thread 8 read: "Initial Content"
+Writer modified content
+Thread 9 read: "Modified Content"</div>
+         
+      </div>
+   </body>
+   
+   <script>
+      hljs.highlightAll();
+   </script>
+   
+</html> 
